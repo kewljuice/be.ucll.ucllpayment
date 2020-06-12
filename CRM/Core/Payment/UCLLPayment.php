@@ -59,13 +59,13 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
     $config = CRM_Core_Config::singleton();
     $error = [];
     if (empty($this->_paymentProcessor['user_name'])) {
-      $error[] = E::ts('The "API client_id" is not set in the Administer CiviCRM Payment Processor.', ['domain' => 'be.ucll.ucllpayment']);
+      $error[] = E::ts('The "API client_id" is not set for this payment processor.', ['domain' => 'be.ucll.ucllpayment']);
     }
     if (empty($this->_paymentProcessor['password'])) {
-      $error[] = E::ts('The "API client_secret" is not set in the Administer CiviCRM Payment Processor.', ['domain' => 'be.ucll.ucllpayment']);
+      $error[] = E::ts('The "API client_secret" is not set for this payment processor.', ['domain' => 'be.ucll.ucllpayment']);
     }
     if (empty($this->_paymentProcessor['subject'])) {
-      $error[] = E::ts('The "Merchant ID" is not set in the Administer CiviCRM Payment Processor.', ['domain' => 'be.ucll.ucllpayment']);
+      $error[] = E::ts('The "Merchant ID" is not set for this payment processor.', ['domain' => 'be.ucll.ucllpayment']);
     }
     if (!empty($error)) {
       return implode('<p>', $error);
