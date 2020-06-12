@@ -123,7 +123,14 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
     // CRM_Core_Session::setStatus(print_r($hash, TRUE), '', 'info');
 
     // @todo Redirect the user to the payment url with hash. (/cart/hash)
-    CRM_Utils_System::redirect($this->_paymentProcessor['url_site'] . '/cart/hash/' . $hash['shoppingCartHash']);
+    if (isset($hash['shoppingCartHash'])) {
+      CRM_Utils_System::redirect($this->_paymentProcessor['url_site'] . '/cart/hash/' . $hash['shoppingCartHash']);
+    }
+    else {
+      $message = E::ts('Something went wrong with the payment provider connection.', ['domain' => 'be.ucll.ucllpayment']);
+      CRM_Core_Session::setStatus(print_r($message, TRUE), '', 'error');
+      CRM_Utils_System::redirect($UCLLPaymentCollectionParams['cancelUrl']);
+    }
 
     // @todo check if this is still needed?
     //exit();
@@ -170,20 +177,23 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
    */
   protected function createItem($params) {
     $curl = curl_init();
-    $headers[] = "Authorization: Bearer " . $this->getOauthToken()['access_token'];;
-    $headers[] = "Content-Type: application/json; charset=utf-8";
-    curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($curl, CURLOPT_URL, $this->_paymentProcessor['url_api'] . '/app/pay/item');
-    // curl_setopt($curl, CURLOPT_USERPWD, $this->_paymentProcessor['user_name'] . ":" . $this->_paymentProcessor['password']);
-    curl_setopt($curl, CURLOPT_POST, 1);
-    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($params));
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-    $result = curl_exec($curl);
-    if (!$result) {
-      $message = E::ts("Connection failure", ['domain' => 'be.ucll.ucllpayment']);
-      CRM_Core_Session::setStatus($message, '', 'alert');
+    $result = "";
+    if (isset($this->getOauthToken()['access_token'])) {
+      $headers[] = "Authorization: Bearer " . $this->getOauthToken()['access_token'];
+      $headers[] = "Content-Type: application/json; charset=utf-8";
+      curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+      curl_setopt($curl, CURLOPT_URL, $this->_paymentProcessor['url_api'] . '/app/pay/item');
+      // curl_setopt($curl, CURLOPT_USERPWD, $this->_paymentProcessor['user_name'] . ":" . $this->_paymentProcessor['password']);
+      curl_setopt($curl, CURLOPT_POST, 1);
+      curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($params));
+      curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+      $result = curl_exec($curl);
+      if (!$result) {
+        $message = E::ts("Connection failure", ['domain' => 'be.ucll.ucllpayment']);
+        CRM_Core_Session::setStatus($message, '', 'alert');
+      }
+      curl_close($curl);
     }
-    curl_close($curl);
     return json_decode($result, TRUE);
   }
 
