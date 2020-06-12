@@ -54,8 +54,7 @@ class CRM_Core_Payment_UCLLPaymentIPN extends CRM_Core_Payment_BaseIPN {
    */
   static function main() {
     // @todo handle IPN.
-    $message = print_r('Todo handle IPN.', TRUE);
-    echo $message;
+    echo print_r(json_decode(file_get_contents('php://input'), TRUE), TRUE);
   }
 
 }

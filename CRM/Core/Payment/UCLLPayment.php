@@ -86,25 +86,18 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
    * @throws \Exception
    */
   function doTransferCheckout(&$params, $component) {
-
     // Check transaction type.
     if ($component != 'contribute' && $component != 'event') {
       CRM_Core_Error::fatal(ts('Component is invalid'));
     }
-
-    // Log parameters.
-    $message = print_r($params, TRUE);
-    // CRM_Core_Session::setStatus($message, '', 'info');
-
     // Start building our parameters.
-    // @todo get secure id? use it as reference to finalize payment in webhook.
-    $UCLLPaymentCollectionParams['id'] = $params['contributionID'];
+    // @todo hash verification Id.
+    $UCLLPaymentCollectionParams['verificationId'] = $params['contributionID'];
     $UCLLPaymentCollectionParams['amount'] = $params['amount'];
     $UCLLPaymentCollectionParams['destination'] = $this->_paymentProcessor['user_name'];
     $UCLLPaymentCollectionParams['nameEn'] = $params['first_name'] . ' ' . $params['last_name'];
     $UCLLPaymentCollectionParams['nameNl'] = $UCLLPaymentCollectionParams['nameEn'];
     $UCLLPaymentCollectionParams['type'] = $this->_paymentProcessor['subject'];
-    $UCLLPaymentCollectionParams['subtype'] = $component;
     $UCLLPaymentCollectionParams['webhookUrl'] = $this->getNotifyUrl();
     $UCLLPaymentCollectionParams['succesUrl'] = $this->getReturnSuccessUrl($params['qfKey']);
     if ($component == 'event') {
@@ -113,27 +106,24 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
     else {
       $UCLLPaymentCollectionParams['cancelUrl'] = $this->getCancelUrl($params['qfKey'], NULL);
     }
-
     // Allow further manipulation of the parameters via custom hooks.
     CRM_Utils_Hook::alterPaymentProcessorParams($this, $params, $UCLLPaymentCollectionParams);
     // CRM_Core_Session::setStatus(print_r($UCLLPaymentCollectionParams, TRUE), '', 'info');
 
-    // Create item and get hash from API. (/pay/item)
+    // Create item and get hash from API. (app/pay/item)
     $hash = $this->createItem($UCLLPaymentCollectionParams);
-    // CRM_Core_Session::setStatus(print_r($hash, TRUE), '', 'info');
 
-    // @todo Redirect the user to the payment url with hash. (/cart/hash)
+    // Redirect the user to the payment url with hash. (/cart/hash)
     if (isset($hash['shoppingCartHash'])) {
-      CRM_Utils_System::redirect($this->_paymentProcessor['url_site'] . '/cart/hash/' . $hash['shoppingCartHash']);
+      $redirect = $this->_paymentProcessor['url_site'] . '/cart/hash/' . $hash['shoppingCartHash'];
+      $redirect = $redirect. '?return=' . $UCLLPaymentCollectionParams['succesUrl'];
+      CRM_Utils_System::redirect($redirect);
     }
     else {
       $message = E::ts('Something went wrong with the payment provider connection.', ['domain' => 'be.ucll.ucllpayment']);
       CRM_Core_Session::setStatus(print_r($message, TRUE), '', 'error');
       CRM_Utils_System::redirect($UCLLPaymentCollectionParams['cancelUrl']);
     }
-
-    // @todo check if this is still needed?
-    //exit();
   }
 
   /**
