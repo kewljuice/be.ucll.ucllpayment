@@ -1,0 +1,11 @@
+{
+    "name": "kewljuice/be.ucll.ucllpayment",
+    "description": "Everything functionally related to integrating UCLL payment provider in CiviCRM.",
+    "type": "civicrm-extension",
+    "require": {
+        "composer/installers": "~1.0"
+    },
+    "keywords": [
+        "CiviCRM"
+    ]
+}
