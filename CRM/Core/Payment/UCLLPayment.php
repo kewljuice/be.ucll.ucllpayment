@@ -116,7 +116,7 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
     // Redirect the user to the payment url with hash. (/cart/hash)
     if (isset($hash['shoppingCartHash'])) {
       $redirect = $this->_paymentProcessor['url_site'] . '/cart/hash/' . $hash['shoppingCartHash'];
-      $redirect = $redirect. '?return=' . $UCLLPaymentCollectionParams['succesUrl'];
+      $redirect = $redirect . '?return=' . urlencode($UCLLPaymentCollectionParams['succesUrl']);
       CRM_Utils_System::redirect($redirect);
     }
     else {
