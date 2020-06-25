@@ -91,8 +91,7 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
       CRM_Core_Error::fatal(ts('Component is invalid'));
     }
     // Start building our parameters.
-    // @todo hash verification Id.
-    $UCLLPaymentCollectionParams['verificationId'] = $params['contributionID'];
+    $UCLLPaymentCollectionParams['verificationId'] = $this->getVerificationId($params['contributionID']);
     $UCLLPaymentCollectionParams['amount'] = $params['amount'];
     $UCLLPaymentCollectionParams['destination'] = $this->_paymentProcessor['user_name'];
     $UCLLPaymentCollectionParams['nameEn'] = $params['first_name'] . ' ' . $params['last_name'];
@@ -108,7 +107,6 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
     }
     // Allow further manipulation of the parameters via custom hooks.
     CRM_Utils_Hook::alterPaymentProcessorParams($this, $params, $UCLLPaymentCollectionParams);
-    // CRM_Core_Session::setStatus(print_r($UCLLPaymentCollectionParams, TRUE), '', 'info');
 
     // Create item and get hash from API. (app/pay/item)
     $hash = $this->createItem($UCLLPaymentCollectionParams);
@@ -156,6 +154,31 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
     }
     curl_close($curl);
     return json_decode($result, TRUE);
+  }
+
+  /**
+   * Get Verification Id.
+   *
+   * @param array $id contribution Id
+   *
+   * @return string
+   */
+  protected function getVerificationId($id) {
+    $verification = '';
+    if (isset($id)) {
+      try {
+        $result = civicrm_api3('Contribution', 'getsingle', [
+          'return' => ["invoice_id"],
+          'id' => $id,
+        ]);
+        if (isset($result['invoice_id'])) {
+          $verification = $result['invoice_id'];
+        }
+      } catch (\CiviCRM_API3_Exception $e) {
+        \Civi::log()->debug("UCLLPayment.php: " . $e->getMessage());
+      }
+    }
+    return $verification;
   }
 
   /**
