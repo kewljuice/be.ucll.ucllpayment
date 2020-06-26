@@ -91,12 +91,16 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
       CRM_Core_Error::fatal(ts('Component is invalid'));
     }
     // Start building our parameters.
-    $UCLLPaymentCollectionParams['verificationId'] = $this->getVerificationId($params['contributionID']);
+    $contribution = $this->getUCLLApi('Contribution', $params['contributionID']);
+    if (isset($contribution['contribution_campaign_id']) && !empty($contribution['contribution_campaign_id'])) {
+      $campaign = $this->getUCLLApi('Campaign', $contribution['contribution_campaign_id']);
+    }
+    $UCLLPaymentCollectionParams['verificationId'] = (isset($contribution['invoice_id'])) ? $contribution['invoice_id'] : '';
     $UCLLPaymentCollectionParams['amount'] = $params['amount'];
     $UCLLPaymentCollectionParams['destination'] = $this->_paymentProcessor['user_name'];
     $UCLLPaymentCollectionParams['nameEn'] = $params['first_name'] . ' ' . $params['last_name'];
     $UCLLPaymentCollectionParams['nameNl'] = $UCLLPaymentCollectionParams['nameEn'];
-    $UCLLPaymentCollectionParams['type'] = $this->_paymentProcessor['subject'];
+    $UCLLPaymentCollectionParams['type'] = (isset($campaign['external_identifier'])) ? $campaign['external_identifier'] : $this->_paymentProcessor['subject'];
     $UCLLPaymentCollectionParams['webhookUrl'] = $this->getNotifyUrl();
     $UCLLPaymentCollectionParams['succesUrl'] = $this->getReturnSuccessUrl($params['qfKey']);
     if ($component == 'event') {
@@ -107,10 +111,8 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
     }
     // Allow further manipulation of the parameters via custom hooks.
     CRM_Utils_Hook::alterPaymentProcessorParams($this, $params, $UCLLPaymentCollectionParams);
-
     // Create item and get hash from API. (app/pay/item)
     $hash = $this->createItem($UCLLPaymentCollectionParams);
-
     // Redirect the user to the payment url with hash. (/cart/hash)
     if (isset($hash['shoppingCartHash'])) {
       $redirect = $this->_paymentProcessor['url_site'] . '/cart/hash/' . $hash['shoppingCartHash'];
@@ -157,31 +159,6 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
   }
 
   /**
-   * Get Verification Id.
-   *
-   * @param array $id contribution Id
-   *
-   * @return string
-   */
-  protected function getVerificationId($id) {
-    $verification = '';
-    if (isset($id)) {
-      try {
-        $result = civicrm_api3('Contribution', 'getsingle', [
-          'return' => ["invoice_id"],
-          'id' => $id,
-        ]);
-        if (isset($result['invoice_id'])) {
-          $verification = $result['invoice_id'];
-        }
-      } catch (\CiviCRM_API3_Exception $e) {
-        \Civi::log()->debug("UCLLPayment.php: " . $e->getMessage());
-      }
-    }
-    return $verification;
-  }
-
-  /**
    * Create item and get hash from API. (/pay/item)
    *
    * @param array $params contribution data
@@ -208,6 +185,28 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
       curl_close($curl);
     }
     return json_decode($result, TRUE);
+  }
+
+  /**
+   * Get CiviCRM Entity API information.
+   *
+   * @param string $id entity type
+   * @param integer $id entity id
+   *
+   * @return array
+   */
+  protected function getUCLLApi($type, $id) {
+    $result = [];
+    if (isset($id)) {
+      try {
+        $result = civicrm_api3($type, 'getsingle', [
+          'id' => $id,
+        ]);
+      } catch (\CiviCRM_API3_Exception $e) {
+        \Civi::log()->debug("UCLLPayment.php: " . $e->getMessage());
+      }
+    }
+    return $result;
   }
 
 }
