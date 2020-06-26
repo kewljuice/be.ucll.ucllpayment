@@ -65,30 +65,41 @@ class CRM_Core_Payment_UCLLPaymentIPN extends CRM_Core_Payment_BaseIPN {
         $check = civicrm_api3('Contribution', 'getSingle', $params);
       } catch (\CiviCRM_API3_Exception $e) {
         \Civi::log()->debug("UCLLPaymentIPN.php: " . $e->getMessage());
+        print print_r($e->getMessage());
       }
       if (!$check['is_error'] && isset($check['contact_id'])) {
-        unset($params['is_test']);
-        $params['contribution_id'] = $check['contribution_id'];
-        $params['contact_id'] = $check['contact_id'];
-        $params['total_amount'] = $check['total_amount'];
-        $params['financial_type_id'] = $check['financial_type_id'];
-        // Contribution status.
-        switch ($variables['status']) {
-          case 'success':
-            $params['contribution_status_id'] = "Completed";
-            break;
-          default:
-            $params['contribution_status_id'] = "Cancelled";
-        }
+        $params = [];
+        $params['id'] = $check['contribution_id'];
         // Add shoppingCartHash as trxn_id.
         if (isset($variables['shoppingCartHash'])) {
           $params['trxn_id'] = $variables['shoppingCartHash'];
         }
-        try {
-          // Update contribution.
-          civicrm_api3('Contribution', 'create', $params);
-        } catch (\CiviCRM_API3_Exception $e) {
-          \Civi::log()->debug("UCLLPaymentIPN.php: " . $e->getMessage());
+        // Contribution status.
+        switch ($variables['status']) {
+          case 'success':
+            if (!$check['contribution_status_id'] != 1) {
+              $params['contribution_status_id'] = 1;
+              try {
+                civicrm_api3('Contribution', 'completeTransaction', $params);
+              } catch (\CiviCRM_API3_Exception $e) {
+                \Civi::log()->debug("UCLLPaymentIPN.php: " . $e->getMessage());
+                print print_r($e->getMessage());
+              }
+            }
+            break;
+          default:
+            if (!$check['contribution_status_id'] != 3) {
+              $params['contribution_status_id'] = 3;
+              $params['contact_id'] = $check['contact_id'];
+              $params['total_amount'] = $check['total_amount'];
+              $params['financial_type_id'] = $check['financial_type_id'];
+              try {
+                civicrm_api3('Contribution', 'create', $params);
+              } catch (\CiviCRM_API3_Exception $e) {
+                \Civi::log()->debug("UCLLPaymentIPN.php: " . $e->getMessage());
+                print print_r($e->getMessage());
+              }
+            }
         }
       }
     }

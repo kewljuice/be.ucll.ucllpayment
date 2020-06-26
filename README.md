@@ -27,6 +27,17 @@ The extension is licensed under [AGPL-3.0](LICENSE.txt).
 - https://oauth.net/2/grant-types/client-credentials
 - https://stackoverflow.com/questions/42670413/unsupported-media-type-in-postman
 
+## Development
+
+| Id | Status      |
+|----|-------------|
+| 1  | Completed   |
+| 2  | Pending     |
+| 3  | Cancelled   |
+| 4  | Failed      |
+| 5  | In Progress |
+| 6  | Overdue     |
+
 ## Known Issues
 
 (* FIXME *)
