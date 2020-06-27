@@ -102,7 +102,7 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
     $UCLLPaymentCollectionParams['nameNl'] = $UCLLPaymentCollectionParams['nameEn'];
     $UCLLPaymentCollectionParams['type'] = (isset($campaign['external_identifier'])) ? $campaign['external_identifier'] : $this->_paymentProcessor['subject'];
     $UCLLPaymentCollectionParams['webhookUrl'] = $this->getNotifyUrl();
-    $UCLLPaymentCollectionParams['succesUrl'] = $this->getReturnSuccessUrl($params['qfKey']);
+    $UCLLPaymentCollectionParams['successUrl'] = $this->getReturnSuccessUrl($params['qfKey']);
     if ($component == 'event') {
       $UCLLPaymentCollectionParams['cancelUrl'] = $this->getCancelUrl($params['qfKey'], $params['participantID']);
     }
@@ -116,7 +116,7 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
     // Redirect the user to the payment url with hash. (/cart/hash)
     if (isset($hash['shoppingCartHash'])) {
       $redirect = $this->_paymentProcessor['url_site'] . '/cart/hash/' . $hash['shoppingCartHash'];
-      $redirect = $redirect . '?return=' . urlencode($UCLLPaymentCollectionParams['succesUrl']);
+      $redirect = $redirect . '?return=' . urlencode($UCLLPaymentCollectionParams['successUrl']);
       CRM_Utils_System::redirect($redirect);
     }
     else {
