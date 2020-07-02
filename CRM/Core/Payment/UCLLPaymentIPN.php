@@ -55,10 +55,6 @@ class CRM_Core_Payment_UCLLPaymentIPN extends CRM_Core_Payment_BaseIPN {
   static function main() {
     // Fetch POST variables.
     $variables = json_decode(file_get_contents('php://input'), TRUE);
-
-    // @todo remove logs
-    \Drupal::logger('UCLLPaymentIPN')->notice(print_r($variables, true));
-
     if (isset($variables['verificationId']) && isset($variables['status'])) {
       $params = [
         'invoice_id' => $variables['verificationId'],
