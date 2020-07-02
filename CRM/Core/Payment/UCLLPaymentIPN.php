@@ -55,6 +55,10 @@ class CRM_Core_Payment_UCLLPaymentIPN extends CRM_Core_Payment_BaseIPN {
   static function main() {
     // Fetch POST variables.
     $variables = json_decode(file_get_contents('php://input'), TRUE);
+
+    // @todo remove logs
+    \Drupal::logger('UCLLPaymentIPN')->notice(print_r($variables, true));
+
     if (isset($variables['verificationId']) && isset($variables['status'])) {
       $params = [
         'invoice_id' => $variables['verificationId'],
@@ -70,9 +74,9 @@ class CRM_Core_Payment_UCLLPaymentIPN extends CRM_Core_Payment_BaseIPN {
       if (!$check['is_error'] && isset($check['contact_id'])) {
         $params = [];
         $params['id'] = $check['contribution_id'];
-        // Add shoppingCartHash as trxn_id.
-        if (isset($variables['shoppingCartHash'])) {
-          $params['trxn_id'] = $variables['shoppingCartHash'];
+        // Add itemId as trxn_id.
+        if (isset($variables['itemId'])) {
+          $params['trxn_id'] = $variables['itemId'];
         }
         // Contribution status.
         switch ($variables['status']) {
@@ -90,9 +94,6 @@ class CRM_Core_Payment_UCLLPaymentIPN extends CRM_Core_Payment_BaseIPN {
           default:
             if (!$check['contribution_status_id'] != 3) {
               $params['contribution_status_id'] = 3;
-              $params['contact_id'] = $check['contact_id'];
-              $params['total_amount'] = $check['total_amount'];
-              $params['financial_type_id'] = $check['financial_type_id'];
               try {
                 civicrm_api3('Contribution', 'create', $params);
               } catch (\CiviCRM_API3_Exception $e) {
