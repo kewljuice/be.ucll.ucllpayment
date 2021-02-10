@@ -6,10 +6,10 @@
  * The ExtensionUtil class provides small stubs for accessing resources of this
  * extension.
  */
-class CRM_Ucllpayment_ExtensionUtil {
-  const SHORT_NAME = "ucllpayment";
-  const LONG_NAME = "be.ucll.ucllpayment";
-  const CLASS_PREFIX = "CRM_Ucllpayment";
+class CRM_ucll_payment_ExtensionUtil {
+  const SHORT_NAME = 'ucllpayment';
+  const LONG_NAME = 'be.ucll.ucllpayment';
+  const CLASS_PREFIX = 'CRM_ucll_payment';
 
   /**
    * Translate a string using the extension's domain.
@@ -77,7 +77,7 @@ class CRM_Ucllpayment_ExtensionUtil {
 
 }
 
-use CRM_Ucllpayment_ExtensionUtil as E;
+use CRM_ucll_payment_ExtensionUtil as E;
 
 /**
  * (Delegated) Implements hook_civicrm_config().
@@ -193,8 +193,9 @@ function _ucllpayment_civix_civicrm_disable() {
  * @param $op string, the type of operation being performed; 'check' or 'enqueue'
  * @param $queue CRM_Queue_Queue, (for 'enqueue') the modifiable list of pending up upgrade tasks
  *
- * @return mixed  based on op. for 'check', returns array(boolean) (TRUE if upgrades are pending)
- *                for 'enqueue', returns void
+ * @return mixed
+ *   based on op. for 'check', returns array(boolean) (TRUE if upgrades are pending)
+ *   for 'enqueue', returns void
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_upgrade
  */
@@ -205,14 +206,14 @@ function _ucllpayment_civix_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) 
 }
 
 /**
- * @return CRM_Ucllpayment_Upgrader
+ * @return CRM_ucll_payment_Upgrader
  */
 function _ucllpayment_civix_upgrader() {
-  if (!file_exists(__DIR__ . '/CRM/Ucllpayment/Upgrader.php')) {
+  if (!file_exists(__DIR__ . '/CRM/ucll/payment/Upgrader.php')) {
     return NULL;
   }
   else {
-    return CRM_Ucllpayment_Upgrader_Base::instance();
+    return CRM_ucll_payment_Upgrader_Base::instance();
   }
 }
 
@@ -225,7 +226,7 @@ function _ucllpayment_civix_upgrader() {
  * @param string $dir base dir
  * @param string $pattern , glob pattern, eg "*.txt"
  *
- * @return array(string)
+ * @return array
  */
 function _ucllpayment_civix_find_files($dir, $pattern) {
   if (is_callable(['CRM_Utils_File', 'findFiles'])) {
@@ -244,7 +245,7 @@ function _ucllpayment_civix_find_files($dir, $pattern) {
     if ($dh = opendir($subdir)) {
       while (FALSE !== ($entry = readdir($dh))) {
         $path = $subdir . DIRECTORY_SEPARATOR . $entry;
-        if ($entry{0} == '.') {
+        if ($entry[0] == '.') {
         }
         elseif (is_dir($path)) {
           $todos[] = $path;
@@ -255,6 +256,7 @@ function _ucllpayment_civix_find_files($dir, $pattern) {
   }
   return $result;
 }
+
 /**
  * (Delegated) Implements hook_civicrm_managed().
  *
@@ -362,7 +364,7 @@ function _ucllpayment_civix_civicrm_themes(&$themes) {
  * @link http://php.net/glob
  * @param string $pattern
  *
- * @return array, possibly empty
+ * @return array
  */
 function _ucllpayment_civix_glob($pattern) {
   $result = glob($pattern);
@@ -470,8 +472,6 @@ function _ucllpayment_civix_civicrm_alterSettingsFolders(&$metaDataFolders = NUL
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_entityTypes
  */
-
 function _ucllpayment_civix_civicrm_entityTypes(&$entityTypes) {
-  $entityTypes = array_merge($entityTypes, array (
-  ));
+  $entityTypes = array_merge($entityTypes, []);
 }
