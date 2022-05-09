@@ -1,6 +1,6 @@
 <?php
 
-use CRM_Ucllpayment_ExtensionUtil as E;
+use CRM_ucll_payment_ExtensionUtil as E;
 
 class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
 
@@ -56,7 +56,6 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
    * @public
    */
   function checkConfig() {
-    $config = CRM_Core_Config::singleton();
     $error = [];
     if (empty($this->_paymentProcessor['user_name'])) {
       $error[] = E::ts('The "API client_id" is not set for this payment processor.', ['domain' => 'be.ucll.ucllpayment']);
@@ -85,10 +84,10 @@ class CRM_Core_Payment_UCLLPayment extends CRM_Core_Payment {
    *
    * @throws \Exception
    */
-  function doTransferCheckout(&$params, $component) {
+  function doPayment(&$params, $component = 'contribute') {
     // Check transaction type.
     if ($component != 'contribute' && $component != 'event') {
-      CRM_Core_Error::fatal(ts('Component is invalid'));
+      CRM_Core_Error::createError(ts('Component is invalid'));
     }
     // Start building our parameters.
     $contribution = $this->getUCLLApi('Contribution', $params['contributionID']);
